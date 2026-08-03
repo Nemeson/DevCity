@@ -85,7 +85,9 @@ function Get-DevCityInstalledVersion {
     )
 
     try {
-        $output = Invoke-Expression "$CheckCommand 2>&1" -ErrorAction Stop
+        # Doppeltes 2>&1 vermeiden: falls checkCommand schon 2>&1 enthaelt, entfernen
+        $cleanCmd = $CheckCommand -replace '\s+2>&1\s*$', ''
+        $output = Invoke-Expression "$cleanCmd 2>&1" -ErrorAction Stop
         $output = $output -join "`n"
 
         if ($ParseFunction -eq 'extract-major') {

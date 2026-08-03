@@ -9,12 +9,13 @@
       "name": "OpenCode",
       "default": true,
       "configPath": {
-        "windows": "%APPDATA%/opencode/opencode.json",
+        "windows": "%USERPROFILE%/.config/opencode/opencode.json",
         "macos": "~/.config/opencode/opencode.json",
         "linux": "~/.config/opencode/opencode.json"
       },
       "configFormat": "json",
-      "mcpServersKey": "mcpServers",
+      "mcpServersKey": "mcp",
+      "format": "opencode",
       "mergeStrategy": "deep-merge-preserve-existing",
       "backupBeforeWrite": true,
       "description": "Multi-Client-Runtime — verwaltet MCP-Server für Claude/Codex/Gemini/Antigravity"
