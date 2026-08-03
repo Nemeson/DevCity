@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json.schemastore.org/tools.json",
+  "version": "1.0.0",
+  "description": "DevCity Tool-Definitionen — alle Tools sind obligatorisch (Abbruch bei Abwahl)",
+  "tools": [
+    {
+      "id": "superpowers",
+      "name": "obra/superpowers",
+      "repo": "https://github.com/obra/superpowers.git",
+      "category": "skill-bundle",
+      "obligatory": true,
+      "description": "Skill-Bundle für Claude/Codex/OpenCode (Brainstorming, TDD, Debugging, Systematic-Debugging, ...)",
+      "install": {
+        "method": "git-clone",
+        "target": "{{SKILLS_DIR}}/superpowers",
+        "command": "git clone --depth 1 https://github.com/obra/superpowers.git \"{{TARGET}}\""
+      },
+      "prerequisites": ["git"],
+      "mcp": null,
+      "healthCheck": false
+    },
+    {
+      "id": "opencode-ai",
+      "name": "opencode-ai",
+      "repo": "https://www.npmjs.com/package/opencode-ai",
+      "category": "runtime",
+      "obligatory": true,
+      "description": "Multi-Client-Runtime für Claude/Codex/Gemini/Antigravity — verwaltet MCP-Server-Konfiguration",
+      "install": {
+        "method": "npm-global",
+        "command": "npm install -g opencode-ai"
+      },
+      "prerequisites": ["node>=20", "npm>=10"],
+      "mcp": null,
+      "healthCheck": false
+    },
+    {
+      "id": "context7",
+      "name": "upstash/context7",
+      "repo": "https://github.com/upstash/context7",
+      "category": "mcp-server",
+      "obligatory": true,
+      "description": "MCP-Server für aktuelle Library-/Framework-Dokumentation (Context7)",
+      "install": {
+        "method": "npx",
+        "command": "npx -y @upstash/context7-mcp@latest",
+        "package": "@upstash/context7-mcp"
+      },
+      "prerequisites": ["node>=20"],
+      "mcp": {
+        "serverName": "context7",
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp@latest"],
+        "env": {}
+      },
+      "healthCheck": false
+    },
+    {
+      "id": "atlassian-mcp-server",
+      "name": "atlassian/atlassian-mcp-server",
+      "repo": "https://github.com/atlassian/atlassian-mcp-server",
+      "category": "mcp-server",
+      "obligatory": true,
+      "description": "MCP-Server für Jira/Confluence — verbindet zu vorhandenem zentralen Atlassian-Server",
+      "install": {
+        "method": "docker",
+        "command": "docker pull ghcr.io/atlassian/atlassian-mcp-server:latest",
+        "alternative": {
+          "method": "maven",
+          "command": "git clone https://github.com/atlassian/atlassian-mcp-server.git && cd atlassian-mcp-server && mvn clean package"
+        }
+      },
+      "prerequisites": ["docker", "java>=17"],
+      "mcp": {
+        "serverName": "atlassian",
+        "transport": "stdio",
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "-e", "ATLASSIAN_URL", "-e", "ATLASSIAN_API_TOKEN", "ghcr.io/atlassian/atlassian-mcp-server:latest"],
+        "env": {
+          "ATLASSIAN_URL": "{{secret:atlassian_url}}",
+          "ATLASSIAN_API_TOKEN": "{{secret:atlassian_token}}"
+        }
+      },
+      "healthCheck": true,
+      "healthCheckEndpoint": "{{secret:atlassian_url}}/rest/api/3/myself",
+      "healthCheckHeaders": {
+        "Authorization": "Bearer {{secret:atlassian_token}}",
+        "Accept": "application/json"
+      }
+    },
+    {
+      "id": "codebase-memory-mcp",
+      "name": "DeusData/codebase-memory-mcp",
+      "repo": "https://github.com/DeusData/codebase-memory-mcp",
+      "category": "mcp-server",
+      "obligatory": true,
+      "description": "Persistentes Knowledge-Graph-Memory — Strukturierte Codebasis-Erinnerung über Sessions hinweg",
+      "install": {
+        "method": "git-clone-npm",
+        "target": "{{MCP_DIR}}/codebase-memory-mcp",
+        "command": "git clone https://github.com/DeusData/codebase-memory-mcp.git \"{{TARGET}}\" && cd \"{{TARGET}}\" && npm install && npm run build"
+      },
+      "prerequisites": ["git", "node>=20"],
+      "mcp": {
+        "serverName": "codebase-memory",
+        "transport": "stdio",
+        "command": "node",
+        "args": ["{{MCP_DIR}}/codebase-memory-mcp/dist/index.js"],
+        "env": {
+          "MEMORY_STORE_PATH": "{{memory_store_path}}"
+        }
+      },
+      "healthCheck": false
+    },
+    {
+      "id": "caveman",
+      "name": "JuliusBrussee/caveman",
+      "repo": "https://github.com/JuliusBrussee/caveman",
+      "category": "skill",
+      "obligatory": true,
+      "description": "Skill für komprimierten Agent-Output — spart Tokens durch Caveman-Format",
+      "install": {
+        "method": "git-clone",
+        "target": "{{SKILLS_DIR}}/caveman",
+        "command": "git clone --depth 1 https://github.com/JuliusBrussee/caveman.git \"{{TARGET}}\""
+      },
+      "prerequisites": ["git"],
+      "mcp": null,
+      "healthCheck": false
+    },
+    {
+      "id": "jenkins-mcp-plugin",
+      "name": "jenkinsci/mcp-server-plugin",
+      "repo": "https://github.com/jenkinsci/mcp-server-plugin",
+      "category": "mcp-client-only",
+      "obligatory": true,
+      "description": "MCP für Jenkins — Server-seitiges Plugin ist bereits auf zentralem Jenkins-Server installiert. Setup schreibt nur Client-Konfiguration.",
+      "install": {
+        "method": "client-config-only",
+        "note": "Server-Plugin ist bereits auf zentralem Jenkins installiert. Keine lokale Installation nötig."
+      },
+      "prerequisites": [],
+      "mcp": {
+        "serverName": "jenkins",
+        "transport": "stdio",
+        "command": "npx",
+        "args": ["-y", "jenkins-mcp-client@latest"],
+        "env": {
+          "JENKINS_URL": "{{secret:jenkins_url}}",
+          "JENKINS_USER": "{{secret:jenkins_user}}",
+          "JENKINS_TOKEN": "{{secret:jenkins_token}}"
+        }
+      },
+      "healthCheck": true,
+      "healthCheckEndpoint": "{{secret:jenkins_url}}/api/json?tree=mode",
+      "healthCheckHeaders": {
+        "Authorization": "Basic {{secret:jenkins_basic_auth}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json.schemastore.org/clients.json",
+  "version": "1.0.0",
+  "description": "DevCity MCP-Client-Definitionen — Multi-Select im Setup-Menü. Default: OpenCode + Copilot CLI.",
+  "defaults": ["opencode", "copilot-cli"],
+  "clients": [
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "default": true,
+      "configPath": {
+        "windows": "%APPDATA%/opencode/opencode.json",
+        "macos": "~/.config/opencode/opencode.json",
+        "linux": "~/.config/opencode/opencode.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "Multi-Client-Runtime — verwaltet MCP-Server für Claude/Codex/Gemini/Antigravity"
+    },
+    {
+      "id": "copilot-cli",
+      "name": "Copilot CLI",
+      "default": true,
+      "configPath": {
+        "windows": "%USERPROFILE%/.copilot-cli/config.json",
+        "macos": "~/.config/copilot-cli/config.json",
+        "linux": "~/.config/copilot-cli/config.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "GitHub Copilot CLI — nutzt MCP-Server für Agent-Driven-Workflows"
+    },
+    {
+      "id": "claude-desktop",
+      "name": "Claude Desktop",
+      "default": false,
+      "configPath": {
+        "windows": "%APPDATA%/Claude/claude_desktop_config.json",
+        "macos": "~/Library/Application Support/Claude/claude_desktop_config.json",
+        "linux": "~/.config/Claude/claude_desktop_config.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "Claude Desktop App — native MCP-Integration"
+    },
+    {
+      "id": "codex",
+      "name": "Codex CLI",
+      "default": false,
+      "configPath": {
+        "windows": "%USERPROFILE%/.codex/config.json",
+        "macos": "~/.codex/config.json",
+        "linux": "~/.codex/config.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "OpenAI Codex CLI — MCP-kompatibel"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "default": false,
+      "configPath": {
+        "windows": "%USERPROFILE%/.gemini/config.json",
+        "macos": "~/.config/gemini/config.json",
+        "linux": "~/.config/gemini/config.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "Google Gemini CLI — MCP-kompatibel"
+    },
+    {
+      "id": "antigravity",
+      "name": "Antigravity",
+      "default": false,
+      "configPath": {
+        "windows": "%USERPROFILE%/.antigravity/config.json",
+        "macos": "~/.config/antigravity/config.json",
+        "linux": "~/.config/antigravity/config.json"
+      },
+      "configFormat": "json",
+      "mcpServersKey": "mcpServers",
+      "mergeStrategy": "deep-merge-preserve-existing",
+      "backupBeforeWrite": true,
+      "description": "Google Antigravity — Agent-IDE mit MCP-Unterstützung"
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json.schemastore.org/prerequisites.json",
+  "version": "1.0.0",
+  "description": "DevCity Prerequisite-Definitionen — pro Tool, welches gebraucht wird. Auto-Install via Winget/Brew/Apt/Scoop.",
+  "prerequisites": [
+    {
+      "id": "git",
+      "name": "Git",
+      "minVersion": "2.40.0",
+      "checkCommand": "git --version",
+      "parseRegex": "git version ([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "installCommands": {
+        "windows": "winget install --id Git.Git -e --source winget",
+        "macos": "brew install git",
+        "linux-apt": "sudo apt-get update && sudo apt-get install -y git",
+        "linux-dnf": "sudo dnf install -y git",
+        "scoop": "scoop install git"
+      },
+      "requiredBy": ["superpowers", "codebase-memory-mcp", "caveman"],
+      "description": "Verteilte Versionskontrolle — nötig für Git-Clones"
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "minVersion": "20.0.0",
+      "checkCommand": "node --version",
+      "parseRegex": "v([0-9]+)\\.",
+      "parseFunction": "extract-major",
+      "installCommands": {
+        "windows": "winget install --id OpenJS.NodeJS.LTS -e --source winget",
+        "macos": "brew install node@20",
+        "linux-apt": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs",
+        "linux-dnf": "curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash - && sudo dnf install -y nodejs",
+        "scoop": "scoop install nodejs-lts"
+      },
+      "requiredBy": ["opencode-ai", "context7", "codebase-memory-mcp"],
+      "description": "JavaScript-Runtime — nötig für opencode-ai, Context7, codebase-memory-mcp"
+    },
+    {
+      "id": "npm",
+      "name": "npm",
+      "minVersion": "10.0.0",
+      "checkCommand": "npm --version",
+      "parseRegex": "([0-9]+)\\.",
+      "parseFunction": "extract-major",
+      "installCommands": {
+        "windows": "winget install --id OpenJS.NodeJS.LTS -e --source winget",
+        "macos": "brew install node@20",
+        "linux-apt": "sudo apt-get install -y npm",
+        "linux-dnf": "sudo dnf install -y npm",
+        "scoop": "scoop install nodejs-lts"
+      },
+      "requiredBy": ["opencode-ai", "context7", "codebase-memory-mcp"],
+      "description": "Node Package Manager — kommt mit Node.js"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "minVersion": "3.11.0",
+      "checkCommand": "python --version",
+      "parseRegex": "Python ([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "installCommands": {
+        "windows": "winget install --id Python.Python.3.11 -e --source winget",
+        "macos": "brew install python@3.11",
+        "linux-apt": "sudo apt-get install -y python3 python3-pip",
+        "linux-dnf": "sudo dnf install -y python3 python3-pip",
+        "scoop": "scoop install python"
+      },
+      "requiredBy": ["codebase-memory-mcp"],
+      "description": "Python 3 — für codebase-memory-mcp (optionale Python-Implementierung)"
+    },
+    {
+      "id": "java",
+      "name": "Java (OpenJDK)",
+      "minVersion": "17.0.0",
+      "checkCommand": "java -version 2>&1",
+      "parseRegex": "\"([0-9]+)\\.",
+      "parseFunction": "extract-major",
+      "installCommands": {
+        "windows": "winget install --id EclipseAdoptium.Temurin.17.JDK -e --source winget",
+        "macos": "brew install openjdk@17",
+        "linux-apt": "sudo apt-get install -y openjdk-17-jdk",
+        "linux-dnf": "sudo dnf install -y java-17-openjdk-devel",
+        "scoop": "scoop install openjdk17"
+      },
+      "requiredBy": ["atlassian-mcp-server"],
+      "description": "Java Runtime — nötig für atlassian-mcp-server (Maven-Build oder Docker-Fallback)"
+    },
+    {
+      "id": "maven",
+      "name": "Apache Maven",
+      "minVersion": "3.9.0",
+      "checkCommand": "mvn --version 2>&1",
+      "parseRegex": "Apache Maven ([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "installCommands": {
+        "windows": "winget install --id Apache.Maven -e --source winget",
+        "macos": "brew install maven",
+        "linux-apt": "sudo apt-get install -y maven",
+        "linux-dnf": "sudo dnf install -y maven",
+        "scoop": "scoop install maven"
+      },
+      "requiredBy": ["atlassian-mcp-server"],
+      "description": "Build-Tool für atlassian-mcp-server (wenn Docker nicht verwendet wird)"
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "minVersion": "24.0.0",
+      "checkCommand": "docker --version",
+      "parseRegex": "Docker version ([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "installCommands": {
+        "windows": "winget install --id Docker.DockerDesktop -e --source winget",
+        "macos": "brew install --cask docker",
+        "linux-apt": "curl -fsSL https://get.docker.com | sudo sh",
+        "linux-dnf": "curl -fsSL https://get.docker.com | sudo sh",
+        "scoop": "scoop install docker"
+      },
+      "requiredBy": ["atlassian-mcp-server"],
+      "description": "Container-Runtime — Preferred-Installationsweg für atlassian-mcp-server"
+    },
+    {
+      "id": "powershell",
+      "name": "PowerShell Core",
+      "minVersion": "7.4.0",
+      "checkCommand": "pwsh --version 2>&1",
+      "parseRegex": "PowerShell ([0-9]+\\.[0-9]+\\.[0-9]+)",
+      "installCommands": {
+        "windows": "winget install --id Microsoft.PowerShell -e --source winget",
+        "macos": "brew install powershell/tap/powershell",
+        "linux-apt": "sudo apt-get install -y powershell",
+        "linux-dnf": "sudo dnf install -y powershell",
+        "scoop": "scoop install pwsh"
+      },
+      "requiredBy": [],
+      "description": "PowerShell 7+ — nötig, um setup.ps1 auszuführen (nur für Bash-Nutzer, die den Wrapper nutzen)"
+    }
+  ]
+}
