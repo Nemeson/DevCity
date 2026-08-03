@@ -6,7 +6,6 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [switch]$DryRun,
-    [switch]$Verbose,
     [switch]$AutoInstall,
     [switch]$NonInteractive,
     [string[]]$OnlyModule,
@@ -104,21 +103,33 @@ function Invoke-Phase1Snapshot {
 }
 
 function Invoke-Phase2Prerequisites {
-    Write-Information '[2/8] Prüfe Prerequisites (Java/Node/Python/Git/Maven/Docker) ...' -InformationAction Continue
+    Write-Information '[2/8] Pruefe Prerequisites (Java/Node/Python/Git/Maven/Docker) ...' -InformationAction Continue
     if ($DryRun) {
-        Write-Information '     Dry-Run: würde Prerequisites prüfen.' -InformationAction Continue
-        return
+        $results = Test-Prerequisites
+        Write-Information '     Dry-Run: Prerequisites-Status:' -InformationAction Continue
+        foreach ($r in $results) {
+            $status = if ($r.Ok) { 'OK' } elseif ($r.Installed) { 'OLD' } else { 'MISS' }
+            $version = if ($r.Version) { $r.Version } else { '-' }
+            Write-Information ("       {0,-10} {1,-20} v{2,-10} (min v{3}) {4}" -f $r.Id, $r.Name, $version, $r.MinVersion, $status) -InformationAction Continue
+        }
+        return $true
     }
-    # TODO: Invoke-PrerequisiteCheck -AutoInstall:$AutoInstall -ErrorAction Continue
+    return Invoke-PrerequisiteCheck -AutoInstall:$AutoInstall -ErrorAction Continue
 }
 
 function Invoke-Phase3ToolInstall {
     Write-Information '[3/8] Installiere 7 obligatorische Tools ...' -InformationAction Continue
     if ($DryRun) {
-        Write-Information '     Dry-Run: würde Tools installieren.' -InformationAction Continue
-        return
+        $status = Get-DevCityToolStatus
+        Write-Information '     Dry-Run: Tool-Status (Cache):' -InformationAction Continue
+        foreach ($toolId in $status.Keys) {
+            $isInstalled = $status[$toolId]
+            $mark = if ($isInstalled) { 'OK' } else { 'MISSING' }
+            Write-Information ("       {0,-25} {1}" -f $toolId, $mark) -InformationAction Continue
+        }
+        return $true
     }
-    # TODO: Install-AllDevCityTools -Force:$Force -ErrorAction Continue
+    return Install-AllDevCityTools -Force:$Force -Parallel:$true -ErrorAction Continue
 }
 
 function Invoke-Phase4Memory {
