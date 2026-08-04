@@ -55,8 +55,11 @@ function Compare-DevCityVersion {
         $minClean    = ($Minimum -replace '[^0-9.]', '').TrimEnd('.')
 
         # Auf gleiche Segment-Anzahl auffuellen (z.B. "24" -> "24.0.0" fuer Vergleich mit "20.0.0")
+        # [version] unterstützt maximal 4 Segmente, daher vorher beschneiden
         $actualSegs = $actualClean -split '\.'
         $minSegs    = $minClean -split '\.'
+        if ($actualSegs.Count -gt 4) { $actualSegs = $actualSegs[0..3] }
+        if ($minSegs.Count -gt 4) { $minSegs = $minSegs[0..3] }
         $maxLen = [Math]::Max($actualSegs.Count, $minSegs.Count)
         while ($actualSegs.Count -lt $maxLen) { $actualSegs += '0' }
         while ($minSegs.Count -lt $maxLen) { $minSegs += '0' }
