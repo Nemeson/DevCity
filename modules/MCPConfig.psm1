@@ -256,38 +256,65 @@ function Write-DevCityMcpConfig {
     }
 
     # Neue MCP-Server-Hashtable bauen — Format pro Client transformieren
+    # Hilfsfunktion: Platzhalter in einem String aufloesen
+    $resolvePlaceholders = {
+        param([string]$Val)
+        if ($Val -match '\{\{memory_store_path\}\}') {
+            $memPath = (Resolve-Path (Join-Path $PSScriptRoot '..\memory')).Path
+            $Val = $Val -replace '\{\{memory_store_path\}\}', ($memPath -replace '\\', '/')
+        }
+        if ($Val -match '\{\{MCP_DIR\}\}') {
+            if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+                $mcpDir = (Join-Path $env:USERPROFILE '.mcp-servers') -replace '\\', '/'
+            } else {
+                $mcpDir = Join-Path $env:HOME '.mcp-servers'
+            }
+            $Val = $Val -replace '\{\{MCP_DIR\}\}', $mcpDir
+        }
+        if ($Val -match '\{\{SKILLS_DIR\}\}') {
+            if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+                $skillsDir = (Join-Path $env:USERPROFILE '.claude\skills') -replace '\\', '/'
+            } else {
+                $skillsDir = Join-Path $env:HOME '.claude/skills'
+            }
+            $Val = $Val -replace '\{\{SKILLS_DIR\}\}', $skillsDir
+        }
+        # Secret-Platzhalter: nur aufloesen wenn SecretsResolver gesetzt ist
+        if ($Val -match '\{\{secret:(.+?)\}\}') {
+            if ($SecretsResolver) {
+                $secretName = $matches[1]
+                $secretVal = & $SecretsResolver $secretName
+                if ($secretVal) {
+                    $Val = $Val -replace "\{\{secret:$secretName\}\}", $secretVal
+                }
+            }
+            # sonst: Platzhalter stehen lassen (Dry-Run oder Secrets noch nicht erfasst)
+        }
+        return $Val
+    }
+
     $newServers = @{}
     foreach ($tool in $tools) {
         $serverName = $tool.mcp.serverName
+
+        # command + args auf Platzhalter aufloesen
+        $resolvedCommand = & $resolvePlaceholders $tool.mcp.command
+        $resolvedArgs = @()
+        if ($tool.mcp.args) {
+            foreach ($arg in $tool.mcp.args) {
+                $resolvedArgs += (& $resolvePlaceholders $arg)
+            }
+        }
+
         $serverDef = [ordered]@{
             type    = $tool.mcp.transport
-            command = $tool.mcp.command
-            args    = $tool.mcp.args
+            command = $resolvedCommand
+            args    = $resolvedArgs
         }
         if ($tool.mcp.env -and $tool.mcp.env.PSObject.Properties.Count -gt 0) {
             $envResolved = @{}
             foreach ($prop in $tool.mcp.env.PSObject.Properties) {
-                $val = $prop.Value
-                # Platzhalter aufloesen
-                if ($val -match '\{\{secret:(.+?)\}\}') {
-                    if ($SecretsResolver) {
-                        $val = & $SecretsResolver $matches[1]
-                    }
-                    # sonst: Platzhalter stehen lassen (Dry-Run)
-                }
-                if ($val -match '\{\{memory_store_path\}\}') {
-                    $memPath = Join-Path $PSScriptRoot '..\memory'
-                    $val = $val -replace '\{\{memory_store_path\}\}', ($memPath -replace '\\', '/')
-                }
-                if ($val -match '\{\{MCP_DIR\}\}') {
-                    if ($IsWindows -or $env:OS -eq 'Windows_NT') {
-                        $mcpDir = Join-Path $env:USERPROFILE '.mcp-servers' -replace '\\', '/'
-                    } else {
-                        $mcpDir = Join-Path $env:HOME '.mcp-servers'
-                    }
-                    $val = $val -replace '\{\{MCP_DIR\}\}', $mcpDir
-                }
-                $envResolved[$prop.Name] = $val
+                $envResolved[$prop.Name] = & $resolvePlaceholders $prop.Value
             }
             $serverDef.env = $envResolved
         }

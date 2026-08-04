@@ -159,15 +159,49 @@ function Invoke-Phase4Memory {
 
 function Invoke-Phase5Secrets {
     Write-Information '[5/8] Frage Secrets ab (Jenkins/Atlassian/Git-Remote) ...' -InformationAction Continue
-    if ($DryRun) {
-        Write-Information '     Dry-Run: wuerde Secrets interaktiv abfragen.' -InformationAction Continue
-        return
+
+    # Optimierung 7: Rotation-Reminder beim Setup-Start
+    if (-not $DryRun) {
+        $rotationNeeded = Test-DevCitySecretRotation
+        if ($rotationNeeded -and $rotationNeeded.Count -gt 0) {
+            Write-Warning "Folgende Secrets sind aelter als 90 Tage (Rotation empfohlen):"
+            foreach ($r in $rotationNeeded) {
+                Write-Information "  - $($r.Name) ($($r.AgeDays) Tage)" -InformationAction Continue
+            }
+            Write-Information ''
+        }
     }
-    # TODO: Invoke-DevCitySecretPrompt -Name 'jenkins_url' -Prompt 'Jenkins Base-URL'
-    # TODO: Invoke-DevCitySecretPrompt -Name 'jenkins_user' -Prompt 'Jenkins User'
-    # TODO: Invoke-DevCitySecretPrompt -Name 'jenkins_token' -Prompt 'Jenkins API-Token'
-    # TODO: Invoke-DevCitySecretPrompt -Name 'atlassian_url' -Prompt 'Atlassian Base-URL (Jira/Confluence)'
-    # TODO: Invoke-DevCitySecretPrompt -Name 'atlassian_token' -Prompt 'Atlassian API-Token'
+
+    $requiredSecrets = @(
+        @{ Name = 'jenkins_url';     Prompt = 'Jenkins Base-URL (z.B. https://jenkins.example.com)' },
+        @{ Name = 'jenkins_user';    Prompt = 'Jenkins User' },
+        @{ Name = 'jenkins_token';   Prompt = 'Jenkins API-Token' },
+        @{ Name = 'atlassian_url';   Prompt = 'Atlassian Base-URL (Jira/Confluence)' },
+        @{ Name = 'atlassian_token'; Prompt = 'Atlassian API-Token' }
+    )
+
+    if ($DryRun) {
+        Write-Information '     Dry-Run: wuerde folgende Secrets abfragen:' -InformationAction Continue
+        foreach ($s in $requiredSecrets) {
+            $existing = if (Get-Command Get-DevCitySecret -ErrorAction SilentlyContinue) {
+                $val = Get-DevCitySecret -Name $s.Name
+                if ($val) { 'OK (gespeichert)' } else { 'MISSING' }
+            } else { 'Modul nicht geladen' }
+            Write-Information "       - $($s.Name): $existing" -InformationAction Continue
+        }
+        return $true
+    }
+
+    foreach ($s in $requiredSecrets) {
+        # Pruefen ob Secret schon vorhanden ist
+        $existing = Get-DevCitySecret -Name $s.Name
+        if ($existing -and -not $Force) {
+            Write-Information "     OK: $($s.Name) bereits gespeichert (verwende -Force zum Ueberschreiben)" -InformationAction Continue
+            continue
+        }
+        Invoke-DevCitySecretPrompt -Name $s.Name -Prompt $s.Prompt -NonInteractive:$NonInteractive | Out-Null
+    }
+    return $true
 }
 
 function Invoke-Phase6McpConfig {
@@ -199,14 +233,23 @@ function Invoke-Phase7HealthCheck {
     Write-Information '[7/8] Health-Check fuer Remote-Server (Jenkins + Atlassian) ...' -InformationAction Continue
     if ($SkipHealthCheck) {
         Write-Information '     uebersprungen (-SkipHealthCheck)' -InformationAction Continue
-        return
+        return $true
     }
+
     if ($DryRun) {
-        Write-Information '     Dry-Run: wuerde Remote-Server pingen.' -InformationAction Continue
-        return
+        Write-Information '     Dry-Run: wuerde Jenkins + Atlassian pingen (3x Retry mit Backoff).' -InformationAction Continue
+        return $true
     }
-    # TODO: $results = Invoke-DevCityHealthCheck -ErrorAction Continue
-    # TODO: Format-DevCityHealthCheckReport -Results $results | Write-Information
+
+    $results = Invoke-DevCityHealthCheck
+    $report = Format-DevCityHealthCheckReport -Results $results
+    Write-Information $report -InformationAction Continue
+
+    # Optimierung 9: Markdown-Report
+    $mdFile = Write-DevCityHealthCheckMarkdown -Results $results
+    Write-Information "     Markdown-Report: $mdFile" -InformationAction Continue
+
+    return $true
 }
 
 function Invoke-Phase8Summary {
