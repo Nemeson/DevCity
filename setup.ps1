@@ -104,9 +104,11 @@ function Invoke-Phase1Snapshot {
         Write-Information '     Dry-Run: wuerde Snapshot erzeugen.' -InformationAction Continue
         return $null
     }
-    # TODO: $snapshotPath = New-DevCitySnapshot -IncludeMcpConfigs -ErrorAction Continue
-    # Write-Information "     Snapshot: $snapshotPath" -InformationAction Continue
-    return $null
+    $snapshotPath = New-DevCitySnapshot -IncludeMcpConfigs -ErrorAction Continue
+    if ($snapshotPath) {
+        Write-Information "     Snapshot: $snapshotPath" -InformationAction Continue
+    }
+    return $snapshotPath
 }
 
 function Invoke-Phase2Prerequisites {
@@ -277,14 +279,20 @@ function Invoke-DevCityRollback {
         Write-Error "Snapshot-Datei nicht gefunden: $SnapshotPath"
         return
     }
-    # TODO: Restore-DevCitySnapshot -Path $SnapshotPath -Force
+    Restore-DevCitySnapshot -Path $SnapshotPath -Force
 }
 
 function Show-DevCitySnapshots {
     Write-Information 'Verfuegbare Snapshots (neueste zuerst):' -InformationAction Continue
-    # TODO: $snapshots = Get-DevCitySnapshots
-    # TODO: foreach ($s in $snapshots) { Write-Information "  $($s.CreatedAt)  $($_.Path)" -InformationAction Continue }
-    Write-Information '  (noch keine Snapshots — Stub)' -InformationAction Continue
+    $snapshots = Get-DevCitySnapshots
+    if ($snapshots.Count -eq 0) {
+        Write-Information '  (noch keine Snapshots vorhanden)' -InformationAction Continue
+    } else {
+        foreach ($s in $snapshots) {
+            $formattedSize = [Math]::Round($s.SizeBytes / 1KB, 1)
+            Write-Information "  - $($s.CreatedAt) | Size: $($formattedSize)KB | Path: $($s.Path)" -InformationAction Continue
+        }
+    }
 }
 
 # ---------------------------------------------------------------------

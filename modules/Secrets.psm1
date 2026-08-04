@@ -281,16 +281,16 @@ function Set-DevCitySecret {
     # Metadaten aktualisieren (fuer Rotation-Reminder)
     $meta = Get-DevCitySecretMeta
     if (-not $meta) {
-        $meta = [PSCustomObject]@{ secrets = @{} }
+        $meta = [PSCustomObject]@{ secrets = [PSCustomObject]@{} }
     }
     if (-not $meta.secrets) {
-        $meta | Add-Member -NotePropertyName secrets -NotePropertyValue @{} -Force
+        $meta | Add-Member -NotePropertyName secrets -NotePropertyValue ([PSCustomObject]@{}) -Force
     }
-    $meta.secrets | Add-Member -NotePropertyName $Name -NotePropertyValue @{
+    $meta.secrets | Add-Member -NotePropertyName $Name -NotePropertyValue ([PSCustomObject]@{
         createdAt      = (Get-Date).ToString('o')
         rotationDays   = $RotationDays
         lastChecked    = (Get-Date).ToString('o')
-    } -Force
+    }) -Force
     Set-DevCitySecretMeta -Meta $meta
 
     # Audit-Log (ohne Wert!)

@@ -356,7 +356,7 @@ function Install-AllDevCityTools {
             $tool = $_
             $modPath = $using:PSScriptRoot
             Import-Module (Join-Path $modPath 'Tools.psm1') -Force
-            if (Get-Command Write-DevCityAuditLog -ErrorAction SilentlyContinue) {
+            if (Test-Path (Join-Path $modPath 'Audit.psm1')) {
                 Import-Module (Join-Path $modPath 'Audit.psm1') -Force
             }
             $ok = Install-DevCityTool -ToolId $tool.id -Force:$using:Force -ConfigPath $using:ConfigPath
