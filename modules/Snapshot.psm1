@@ -329,7 +329,7 @@ function Restore-DevCitySnapshot {
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 
     try {
-        if ($PSCmdlet.ShouldProcess($Path, "Wiederherstellen aus Snapshot")) {
+        if ($Force -or $PSCmdlet.ShouldProcess($Path, "Wiederherstellen aus Snapshot")) {
             Expand-Archive -Path $snap.Path -DestinationPath $tempDir -Force
             
             # 5. Dateien an ihre Ursprungsorte zurückkopieren
